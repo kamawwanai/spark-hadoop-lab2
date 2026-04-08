@@ -1,0 +1,38 @@
+{
+  "experiment_name": "exp_3dn_optimized",
+  "optimized": true,
+  "timestamp": "2026-04-08T06:45:58.367540",
+  "total_execution_time_sec": 96.68,
+  "stages": {
+    "Загрузка данных": 26.01,
+    "Предобработка данных (с оптимизацией)": 21.92,
+    "Вычисление базовой статистики": 5.12,
+    "Построение профилей пользователей": 14.79,
+    "Выявление интересных пользователей": 17.51
+  },
+  "memory_allocated": {
+    "driver_memory_mb": 1024,
+    "executor_memory_mb": 1024,
+    "total_executor_memory_mb": 1024,
+    "num_executors": 1
+  },
+  "memory_used": {
+    "driver_total_mb": 1024,
+    "driver_used_mb": 716,
+    "driver_free_mb": 307,
+    "executors_total_mb": 1024,
+    "executors_used_mb": 716,
+    "executors_free_mb": 307
+  },
+  "job_statistics": {
+    "num_jobs": 43,
+    "num_completed_jobs": 43,
+    "num_failed_jobs": 0,
+    "num_stages": 142,
+    "num_completed_stages": 44,
+    "num_tasks_launched": 1248,
+    "num_tasks_completed": 332,
+    "num_tasks_failed": 0
+  },
+  "rows_processed": 1296675
+}

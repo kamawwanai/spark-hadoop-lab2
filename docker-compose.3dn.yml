@@ -1,0 +1,123 @@
+# Override для 3 DataNode конфигурации
+# docker-compose -f docker-compose.yml -f docker-compose.3dn.yml up -d
+
+services:
+  # Обновление NameNode для 3 репликации
+  hdfs-master:
+    environment:
+      - HDFS-SITE.XML_dfs.replication=3
+    mem_limit: 2g
+
+  # Обновление первого DataNode
+  hdfs-node:
+    environment:
+      - HDFS-SITE.XML_dfs.replication=3
+
+  # Второй DataNode
+  hdfs-node2:
+    image: apache/hadoop:3.4
+    container_name: hdfs-node2
+    hostname: hdfs-node2
+    ports:
+      - "9865:9864"
+    volumes:
+      - hadoop_datanode2:/hadoop/dfs/data
+      - ./data:/data
+    command: hdfs datanode
+    environment:
+      - CORE-SITE.XML_fs.defaultFS=hdfs://hdfs-master:9000
+      - HDFS-SITE.XML_dfs.replication=3
+      - HDFS-SITE.XML_dfs.blocksize=134217728
+      - HADOOP_HEAPSIZE_MAX=512m
+    cpus: 1.0
+    mem_limit: 1g
+    depends_on:
+      - hdfs-master
+    networks:
+      - bigdata-net
+
+  # Третий DataNode
+  hdfs-node3:
+    image: apache/hadoop:3.4
+    container_name: hdfs-node3
+    hostname: hdfs-node3
+    ports:
+      - "9866:9864"
+    volumes:
+      - hadoop_datanode3:/hadoop/dfs/data
+      - ./data:/data
+    command: hdfs datanode
+    environment:
+      - CORE-SITE.XML_fs.defaultFS=hdfs://hdfs-master:9000
+      - HDFS-SITE.XML_dfs.replication=3
+      - HDFS-SITE.XML_dfs.blocksize=134217728
+      - HADOOP_HEAPSIZE_MAX=512m
+    cpus: 1.0
+    mem_limit: 1g
+    depends_on:
+      - hdfs-master
+    networks:
+      - bigdata-net
+
+  # Второй Spark Worker
+  spark-worker2:
+    image: apache/spark:4.0.2-python3
+    container_name: spark-worker2
+    hostname: spark-worker2
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    ports:
+      - "8082:8081"
+    volumes:
+      - ./spark-app:/app/code:ro
+      - ./results:/app/results
+      - ./data:/app/data:ro
+    environment:
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_PORT=7079
+      - SPARK_WORKER_WEBUI_PORT=8081
+      - CORE-SITE.XML_fs.defaultFS=hdfs://hdfs-master:9000
+    cpus: 2
+    mem_limit: 2g
+    depends_on:
+      - spark-master
+    networks:
+      - bigdata-net
+
+  # Третий Spark Worker
+  spark-worker3:
+    image: apache/spark:4.0.2-python3
+    container_name: spark-worker3
+    hostname: spark-worker3
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    ports:
+      - "8083:8081"
+    volumes:
+      - ./spark-app:/app/code:ro
+      - ./results:/app/results
+      - ./data:/app/data:ro
+    environment:
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_PORT=7080
+      - SPARK_WORKER_WEBUI_PORT=8081
+      - CORE-SITE.XML_fs.defaultFS=hdfs://hdfs-master:9000
+    cpus: 2
+    mem_limit: 2g
+    depends_on:
+      - spark-master
+    networks:
+      - bigdata-net
+
+  # Обновленный Spark Master
+  spark-master:
+    mem_limit: 2g
+    cpus: 2
+
+volumes:
+  hadoop_datanode2:
+  hadoop_datanode3:
+
+networks:
+  bigdata-net:
+    driver: bridge

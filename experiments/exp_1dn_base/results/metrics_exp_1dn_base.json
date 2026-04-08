@@ -1,0 +1,38 @@
+{
+  "experiment_name": "exp_1dn_base",
+  "optimized": false,
+  "timestamp": "2026-04-08T06:34:34.745539",
+  "total_execution_time_sec": 141.7,
+  "stages": {
+    "Загрузка данных": 24.52,
+    "Предобработка данных": 0.92,
+    "Вычисление базовой статистики": 9.49,
+    "Построение профилей пользователей": 11.98,
+    "Выявление интересных пользователей": 84.5
+  },
+  "memory_allocated": {
+    "driver_memory_mb": 1024,
+    "executor_memory_mb": 1024,
+    "total_executor_memory_mb": 1024,
+    "num_executors": 1
+  },
+  "memory_used": {
+    "driver_total_mb": 1024,
+    "driver_used_mb": 716,
+    "driver_free_mb": 307,
+    "executors_total_mb": 1024,
+    "executors_used_mb": 716,
+    "executors_free_mb": 307
+  },
+  "job_statistics": {
+    "num_jobs": 0,
+    "num_completed_jobs": 0,
+    "num_failed_jobs": 0,
+    "num_stages": 0,
+    "num_completed_stages": 0,
+    "num_tasks_launched": 0,
+    "num_tasks_completed": 0,
+    "num_tasks_failed": 0
+  },
+  "rows_processed": 1296675
+}

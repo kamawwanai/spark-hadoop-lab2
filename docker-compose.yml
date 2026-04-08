@@ -1,0 +1,108 @@
+# Apache Hadoop 3.4 + Spark 4.0.2 конфигурация
+# Размер блока HDFS: 128MB
+# Репликация: 1 для 1 DataNode
+
+services:
+  # HDFS NameNode - главный узел хранилища
+  hdfs-master:
+    image: apache/hadoop:3.4
+    container_name: hdfs-master
+    hostname: hdfs-master
+    ports:
+      - "9870:9870"  # HDFS Web UI
+      - "9000:9000"  # HDFS port
+    volumes:
+      - hadoop_namenode:/hadoop/dfs/name
+      - ./data:/data
+    command: /bin/bash -c "hdfs namenode -format hdfs_lab -force -nonInteractive || true && hdfs namenode"
+    environment:
+      - CORE-SITE.XML_fs.defaultFS=hdfs://hdfs-master:9000
+      - HDFS-SITE.XML_dfs.replication=1
+      - HDFS-SITE.XML_dfs.blocksize=134217728
+      - HADOOP_HEAPSIZE_MAX=512m
+    cpus: 0.5
+    mem_limit: 1g
+    networks:
+      - bigdata-net
+
+  # HDFS DataNode - узел хранения данных
+  hdfs-node:
+    image: apache/hadoop:3.4
+    container_name: hdfs-node
+    hostname: hdfs-node
+    ports:
+      - "9864:9864"  # DataNode Web UI
+    volumes:
+      - hadoop_datanode:/hadoop/dfs/data
+      - ./data:/data
+    command: hdfs datanode
+    environment:
+      - CORE-SITE.XML_fs.defaultFS=hdfs://hdfs-master:9000
+      - HDFS-SITE.XML_dfs.replication=1
+      - HDFS-SITE.XML_dfs.blocksize=134217728
+      - HADOOP_HEAPSIZE_MAX=512m
+    cpus: 1.0
+    mem_limit: 1g
+    depends_on:
+      - hdfs-master
+    networks:
+      - bigdata-net
+
+  # Spark Master - оркестратор задач
+  spark-master:
+    image: apache/spark:4.0.2-python3
+    container_name: spark-master
+    hostname: spark-master
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master
+    ports:
+      - "8080:8080"   # Spark Master Web UI
+      - "7077:7077"   # Spark submit port
+      - "4040:4040"   # Spark Application UI
+    volumes:
+      - ./spark-app:/app/code:ro
+      - ./results:/app/results
+      - ./data:/app/data:ro
+    environment:
+      - SPARK_MASTER_HOST=spark-master
+      - SPARK_MASTER_PORT=7077
+      - SPARK_MASTER_WEBUI_PORT=8080
+      - CORE-SITE.XML_fs.defaultFS=hdfs://hdfs-master:9000
+    cpus: 1
+    mem_limit: 1g
+    depends_on:
+      - hdfs-master
+    networks:
+      - bigdata-net
+
+  # Spark Worker/Executor - исполнитель задач
+  spark-worker:
+    image: apache/spark:4.0.2-python3
+    container_name: spark-worker
+    hostname: spark-worker
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    ports:
+      - "8081:8081"  # Spark Worker Web UI
+    volumes:
+      - ./spark-app:/app/code:ro
+      - ./results:/app/results
+      - ./data:/app/data:ro
+    environment:
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_WORKER_PORT=7078
+      - SPARK_WORKER_WEBUI_PORT=8081
+      - CORE-SITE.XML_fs.defaultFS=hdfs://hdfs-master:9000
+    cpus: 2
+    mem_limit: 1g
+    depends_on:
+      - spark-master
+    networks:
+      - bigdata-net
+
+volumes:
+  hadoop_namenode:
+  hadoop_datanode:
+
+networks:
+  bigdata-net:
+    driver: bridge
